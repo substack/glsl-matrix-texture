@@ -6,7 +6,7 @@ var regl = require('regl')({
   ]
 })
 var camera = require('regl-camera')(regl,
-  { distance: 120, phi: -0.6 })
+  { distance: 120, phi: 0.8 })
 var ch = require('conway-hart')
 var mat4 = require('gl-mat4')
 var vec3 = require('gl-vec3')
@@ -17,15 +17,14 @@ var formulas = [
   'O', 'jO', 'kO', 'dtO', 'oO', 'mO', 'gO',
   'D'
 ]
-var N = 800
-var mwidth = 64
-var mheight = 50
+var N = 800, mwidth = 64, mheight = 50
+//var N = 54000, mwidth = 480, mheight = 450 // slow
+//var N = 13500, mwidth = 240, mheight = 225
 
 var matrices = new Float32Array(16*N)
 var rotations = new Float32Array(4*N)
 
 var tmpv = new Float32Array(3)
-var tmpm = new Float32Array(16)
 
 for (var i = 0; i < N; i++) {
   vec3.random(tmpv, 1.0)
@@ -43,9 +42,9 @@ function update (time) {
     var theta = i/n*2*Math.PI/3 + i/N
     var r = Math.pow(i/n,0.5) * 10
     mat4.identity(m)
-    tmpv[0] = (1-Math.pow(i/n,0.4))*2
+    tmpv[0] = Math.sin(theta)*r
+    tmpv[1] = (1-Math.pow(i/n,0.4))*2
       + Math.sin(theta/2+time*tau*0.5)*0.5 + 10
-    tmpv[1] = Math.sin(theta)*r
     tmpv[2] = Math.cos(theta)*r
     mat4.translate(m, m, tmpv)
     tmpv[0] = rotations[i*4+0]
