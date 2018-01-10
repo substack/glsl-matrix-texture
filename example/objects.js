@@ -18,6 +18,7 @@ var offsets = new Float32Array(3*N)
 var rotations = new Float32Array(4*N)
 
 var tmpv = new Float32Array(3)
+var tmpm = new Float32Array(16)
 
 for (var i = 0; i < N; i++) {
   var r = i/N * 20
@@ -29,19 +30,39 @@ for (var i = 0; i < N; i++) {
   rotations[i*4+0] = tmpv[0]
   rotations[i*4+1] = tmpv[1]
   rotations[i*4+2] = tmpv[2]
-  rotations[i*4+3] = 1/60
+  rotations[i*4+3] = 1
 }
 
 function update (time) {
   for (var i = 0; i < N; i++) {
-    var m = matrices.subarray(i,i+16)
+    //var m = matrices.subarray(i*16,i*16+16)
     tmpv[0] = rotations[i*4+0]
     tmpv[1] = rotations[i*4+1]
     tmpv[2] = rotations[i*4+2]
     var rspeed = rotations[i*4+3]
-    mat4.identity(m)
-    //mat4.rotate(m, m, time*rspeed, tmpv)
+    mat4.identity(tmpm)
+    mat4.rotate(tmpm, tmpm, time*rspeed, tmpv)
+    copy(matrices, i, tmpm)
   }
+}
+
+function copy (dst, i, src) {
+  dst[i*16+0] = src[0]
+  dst[i*16+1] = src[1]
+  dst[i*16+2] = src[2]
+  dst[i*16+3] = src[3]
+  dst[i*16+4] = src[4]
+  dst[i*16+5] = src[5]
+  dst[i*16+6] = src[6]
+  dst[i*16+7] = src[7]
+  dst[i*16+8] = src[8]
+  dst[i*16+9] = src[9]
+  dst[i*16+10] = src[10]
+  dst[i*16+11] = src[11]
+  dst[i*16+12] = src[12]
+  dst[i*16+13] = src[13]
+  dst[i*16+14] = src[14]
+  dst[i*16+15] = src[15]
 }
 
 var mesh = { positions: [], cells: [], ids: [] }
@@ -92,8 +113,8 @@ var draw = regl({
     attribute float id;
     varying vec3 vpos;
     void main () {
-      float w = ${(N*4).toFixed(1)};
-      float ix = id;
+      float w = ${(N*4-1).toFixed(1)};
+      float ix = id*4.0;
       mat4 model = mat4(
         texture2D(mtex,vec2((ix+0.0)/w,0.0)),
         texture2D(mtex,vec2((ix+1.0)/w,0.0)),
@@ -113,13 +134,6 @@ var draw = regl({
   },
   elements: mesh.cells
 })
-
-/*
-var N = 100
-var matrices = new Float32Array(16*N)
-var positions = new Float32Array(box.positions.length*N)
-var cells = new Float32Array(box.cells.length*N)
-*/
 
 regl.frame(function (context) {
   update(context.time)
