@@ -1,3 +1,4 @@
+var glsl = require('glslify')
 var regl = require('regl')({
   extensions: [
     'oes_standard_derivatives',
@@ -10,20 +11,24 @@ var camera = require('regl-camera')(regl,
 var ch = require('conway-hart')
 var mat4 = require('gl-mat4')
 var vec3 = require('gl-vec3')
-var glsl = require('glslify')
 
 var formulas = [
   'dO', 'aO', 'tC', 'tO', 'eO', 'taO', 'sO',
-  'O', 'jO', 'kO', 'dtO', 'oO', 'mO', 'gO',
-  'D'
+  'O', 'jO', 'kO', 'dtO', 'oO', 'mO', 'gO', 'D'
 ]
-var N = 800, mwidth = 64, mheight = 50
-//var N = 54000, mwidth = 480, mheight = 450 // slow
-//var N = 13500, mwidth = 240, mheight = 225
+var N = 250
+var msize = require('../')(N)
+var mtex = regl.texture({
+  width: msize.width,
+  height: msize.height,
+  format: 'rgba',
+  wrapS: 'clamp',
+  wrapT: 'clamp',
+  data: matrices
+})
 
-var matrices = new Float32Array(16*N)
+var matrices = new Float32Array(msize.length)
 var rotations = new Float32Array(4*N)
-
 var tmpv = new Float32Array(3)
 
 for (var i = 0; i < N; i++) {
@@ -76,16 +81,6 @@ for (var i = 0; i < N; i++) {
   }
 }
 
-
-var mtex = regl.texture({
-  width: mwidth,
-  height: mheight,
-  format: 'rgba',
-  wrapS: 'clamp',
-  wrapT: 'clamp',
-  data: matrices
-})
-
 var draw = regl({
   frag: glsl`
     #extension GL_OES_standard_derivatives : enable
@@ -101,23 +96,16 @@ var draw = regl({
   `,
   vert: glsl`
     precision highp float;
+    #pragma glslify: read_mat4 = require('../')
     uniform mat4 projection, view;
     uniform sampler2D mtex;
+    uniform vec2 msize;
     attribute vec3 position;
     attribute float id;
     varying vec3 vpos;
     void main () {
-      float w = ${(mwidth-1).toFixed(1)};
-      float h = ${(mheight-1).toFixed(1)};
-      float tx = mod(id*4.0,w+1.0);
-      float ty = floor(id*4.0/w);
-      mat4 model = mat4(
-        texture2D(mtex,vec2((tx+0.0)/w,ty/h)),
-        texture2D(mtex,vec2((tx+1.0)/w,ty/h)),
-        texture2D(mtex,vec2((tx+2.0)/w,ty/h)),
-        texture2D(mtex,vec2((tx+3.0)/w,ty/h))
-      );
       vpos = position;
+      mat4 model = read_mat4(mtex, id, msize);
       gl_Position = projection * view * model * vec4(position,1);
     }
   `,
@@ -126,15 +114,21 @@ var draw = regl({
     id: mesh.ids
   },
   uniforms: {
-    mtex: mtex
+    mtex: mtex,
+    msize: [msize.width,msize.height]
   },
   elements: mesh.cells
 })
 
 regl.frame(function (context) {
   update(context.time)
-  mtex.subimage(matrices)
-  camera(function () {
-    draw()
+  mtex({
+    width: msize.width,
+    height: msize.height,
+    format: 'rgba',
+    wrapS: 'clamp',
+    wrapT: 'clamp',
+    data: matrices
   })
+  camera(function () { draw() })
 })
