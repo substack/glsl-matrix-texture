@@ -1,6 +1,6 @@
 {
   "name": "glsl-matrix-texture",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "read matrices from a texture",
   "main": "index.js",
   "keywords": [
