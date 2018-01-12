@@ -37,8 +37,6 @@ function update (time) {
 }
 
 var conwayHart = require('conway-hart')
-var anormals = require('angle-normals')
-
 var meshes = 'dO aO tC tO eO taO sO O jO kO dtO oO mO gO D'.split(' ')
   .map(function (formula) { return conwayHart(formula) })
 
