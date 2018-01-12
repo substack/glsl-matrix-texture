@@ -1,2 +1,13 @@
 {
+  "name": "glsl-matrix-texture",
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": [
+    "glslify",
+    "glsl",
+    "webgl",
+    "matrix",
+    "texture"
+  ],
+  "license": "BSD"
 }
