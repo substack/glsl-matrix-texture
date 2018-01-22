@@ -1,7 +1,7 @@
 mat4 read_matrix (sampler2D tex, float i, vec2 size) {
   float w = size.x-1.0;
   float h = size.y-1.0;
-  float tx = mod(i*4.0+0.00001,size.x);
+  float tx = mod(i*4.0+0.5/size.x,size.x);
   float ty = floor(i*4.0/w);
   return mat4(
     texture2D(tex,vec2((tx+0.0)/w,ty/h)),
